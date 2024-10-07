@@ -6,10 +6,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"fmt"
+	"Test_task/repository"
 )
 
 func handlerHome(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "HOME ROUT")
+	fmt.Fprintf(w, "TEST TASK HOME ROUT")
 }
 
 func main() {
@@ -25,14 +26,14 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(f, opts))
 	logger.Info("Info message")
 
-	// ConnectDatabase(logger)
+	repository.ConnectDatabase(logger)
 
 	router := chi.NewRouter()
     router.HandleFunc("/", handlerHome)
 
 	err = http.ListenAndServe(os.Getenv("PORT"), router)
 	if err != nil {
-		logger.Error("failed start server")
+		logger.Error("Failed start server")
 		panic(err)
 	}
 }
