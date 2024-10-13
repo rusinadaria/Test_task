@@ -1,0 +1,195 @@
+basePath: /songs
+definitions:
+  models.Couplet:
+    properties:
+      number:
+        type: integer
+      text:
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Song:
+    properties:
+      group:
+        description: 'required: true'
+        type: string
+      id:
+        type: string
+      link:
+        description: 'required: true'
+        type: string
+      releaseDate:
+        description: 'required: true'
+        type: string
+      song:
+        description: 'required: true'
+        type: string
+      text:
+        description: 'required: true'
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample API for managing songs.
+  title: Songs API
+  version: "1.0"
+paths:
+  /songs:
+    get:
+      description: Get a list of songs with optional filters
+      parameters:
+      - description: Song name
+        in: query
+        name: song
+        type: string
+      - description: Group name
+        in: query
+        name: group_name
+        type: string
+      - description: Release date
+        in: query
+        name: release_date
+        type: string
+      - description: Text
+        in: query
+        name: text
+        type: string
+      - description: Link
+        in: query
+        name: link
+        type: string
+      - description: Last ID
+        in: query
+        name: last_id
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Song'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get songs
+    post:
+      consumes:
+      - application/json
+      description: Add a new song to the database
+      parameters:
+      - description: Song data
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.Song'
+      responses:
+        "201":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Add a new song
+  /songs/{id}:
+    delete:
+      description: Delete song by ID
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete song by ID
+    patch:
+      description: Update song by ID
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update song by ID
+  /songs/{id}/couplets:
+    get:
+      description: Get couplets of a song by its ID
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Couplet'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get song couplets by ID
+swagger: "2.0"
