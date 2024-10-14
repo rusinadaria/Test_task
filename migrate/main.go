@@ -6,10 +6,18 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"os"
+    "github.com/joho/godotenv"
+	"log"
 )
 
 func main() {
-	m, err := migrate.New("file://./migrations", "postgres://postgres:root@localhost/song_library?sslmode=disable") // вынести куда нибудь путь
+	err := godotenv.Load()
+	if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+	dbPATH := os.Getenv("DATABASE_PATH")
+	m, err := migrate.New("file://./migrations", dbPATH)
 	if err != nil {
 		panic(err)
 	}
