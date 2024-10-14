@@ -17,18 +17,7 @@ import (
 // @BasePath /songs
 func main() {
 	// godotenv.Load()
-	f, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		slog.Error("Unable to open a file for writing")
-	}
-
-	opts := &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}
-
-	logger := slog.New(slog.NewJSONHandler(f, opts))
-	logger.Info("Info message")
-
+	logger := configLogger()
 	repository.ConnectDatabase(logger)
 
 	router := chi.NewRouter()
@@ -38,9 +27,25 @@ func main() {
 	router.Patch("/songs/{id}", service.SongsIdEditPatch) // Update a song by ID
 	router.Get("/songs/{id}/couplets", service.SongsIdCoupletGet) // Get couplets of a song by ID
 
-	err = http.ListenAndServe(os.Getenv("PORT"), router)
+	err := http.ListenAndServe(os.Getenv("PORT"), router)
 	if err != nil {
 		logger.Error("failed start server")
 		panic(err)
 	}
+}
+
+func configLogger() *slog.Logger {
+	var logger *slog.Logger
+
+	f, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+        slog.Error("Unable to open a file for writing")
+    }
+
+	opts := &slog.HandlerOptions{
+        Level: slog.LevelDebug,
+    }
+
+	logger = slog.New(slog.NewJSONHandler(f, opts))
+	return logger
 }
