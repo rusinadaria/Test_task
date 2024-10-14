@@ -1,4 +1,4 @@
-package service
+package handler
 
 import (
 	"encoding/json"
@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
 	"github.com/go-chi/chi/v5"
-	_ "github.com/lib/pq"
 	"Test_task/models"
-	"Test_task/repository"
+	// "fmt"
 )
 
-// SongsAddPost добавление новой песни.
+// AddSongs добавление новой песни.
 // @Summary Add a new song
 // @Description Add a new song to the database
 // @Accept json
@@ -21,8 +21,9 @@ import (
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /songs [post]
-func SongsAddPost(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
 	var newSong models.Song
 
 	body, err := io.ReadAll(r.Body)
@@ -36,18 +37,19 @@ func SongsAddPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+	// fmt.Println(newSong.Song)
+	// fmt.Println(newSong.GroupName)
 
-	err = repository.AddNewSong(newSong)
+	err = h.services.CreateSong(newSong)
 	if err != nil {
 		// добавить проверку на 404 код
 		http.Error(w, "Error while adding song", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	// json.NewEncoder(w).Encode(newSong)
 }
 
-// SongsGet получение списка песен с фильтрацией.
+// GetSongs получение списка песен с фильтрацией.
 // @Summary Get songs
 // @Description Get a list of songs with optional filters
 // @Produce json
@@ -61,31 +63,25 @@ func SongsAddPost(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {array} models.Song
 // @Failure 500 {object} models.ErrorResponse
 // @Router /songs [get]
-func SongsGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	songName := r.URL.Query().Get("song")
-	groupName := r.URL.Query().Get("group_name")
-	releaseDate := r.URL.Query().Get("release_date")
-	text := r.URL.Query().Get("text")
-	link := r.URL.Query().Get("link")
-	lastId := r.URL.Query().Get("last_id")
-	limit := r.URL.Query().Get("limit")
+	params := []string{"song", "group_name", "release_date", "text", "link", "last_id", "limit"}
+	values := make(map[string]string)
+
+	for _, param := range params {
+		values[param] = r.URL.Query().Get(param)
+	}
 
 	filter := models.Song{
-		Song:        songName,
-		GroupName:   groupName,
-		ReleaseDate: releaseDate,
-		Text:        text,
-		Link:        link,
+		Song:        values["song"],
+		GroupName:   values["group_name"],
+		ReleaseDate: values["release_date"],
+		Text:        values["text"],
+		Link:        values["link"],
 	}
 
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = 10
-	}
-
-	songs, err := repository.GetAllSongs(filter, lastId, limitInt)
+	songs, err := h.services.GetAll(filter, values["last_id"], values["limit"])
 	if err != nil {
 		http.Error(w, "Error while adding song", http.StatusInternalServerError)
 		return
@@ -97,7 +93,7 @@ func SongsGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SongsIdCoupletGet получение куплета песни по ID.
+// SongCouplets получение куплета песни по ID.
 // @Summary Get song couplets by ID
 // @Description Get couplets of a song by its ID
 // @Produce json
@@ -108,10 +104,10 @@ func SongsGet(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /songs/{id}/couplets [get]
-func SongsIdCoupletGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SongCouplets(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id") //спрятать роутер
 	if id == "" {
 		http.Error(w, "Invalid song ID", http.StatusBadRequest)
 		return
@@ -139,7 +135,7 @@ func SongsIdCoupletGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	songText, err := repository.GetSongText(id)
+	songText, err := h.services.GetCouplet(id)
 	if err != nil {
 		http.Error(w, "Error while retrieving song text", http.StatusInternalServerError)
 		return
@@ -176,33 +172,7 @@ func splitCouplets(text string, limit int) []models.Couplet {
 	return verses
 }
 
-// SongsIdDelete удаление песни по ID.
-// @Summary Delete song by ID
-// @Description Delete song by ID
-// @Produce json
-// @Param id path string true "Song ID"
-// @Success 204 {string} string "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
-// @Router /songs/{id} [delete]
-func SongsIdDelete(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	id := chi.URLParam(r, "id") //спрятать роутер
-	if id == "" {
-		http.Error(w, http.StatusText(400), 400)
-		return
-	}
-
-	err := repository.DeleteSong(id)
-	if err != nil {
-		// проверка на 404 код
-		http.Error(w, "Error while adding song", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// SongsIdEditPatch обновление информации о песне.
+// EditSong обновление информации о песне.
 // @Summary Update song by ID
 // @Description Update song by ID
 // @Produce json
@@ -211,9 +181,9 @@ func SongsIdDelete(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /songs/{id} [patch]
-func SongsIdEditPatch(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) EditSong(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id") //спрятать роутер
 	if id == "" {
 		http.Error(w, "Invalid song ID", http.StatusBadRequest)
 		return
@@ -225,9 +195,35 @@ func SongsIdEditPatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := repository.UpdateSong(id, updatedSong)
+	err := h.services.UpdateSong(id, updatedSong)
 	if err != nil {
 		http.Error(w, "Error while updating song", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DeleteSong удаление песни по ID.
+// @Summary Delete song by ID
+// @Description Delete song by ID
+// @Produce json
+// @Param id path string true "Song ID"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /songs/{id} [delete]
+func (h *Handler) DeleteSong(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	id := chi.URLParam(r, "id") //спрятать роутер
+	if id == "" {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	err := h.services.DeleteSong(id)
+	if err != nil {
+		// проверка на 404 код
+		http.Error(w, "Error while adding song", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

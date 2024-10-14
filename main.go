@@ -4,10 +4,11 @@ import (
 	"Test_task/repository"
 	// "fmt"
 	"Test_task/internal/service"
+	"Test_task/internal/handler"
 	"log/slog"
 	"net/http"
 	"os"
-	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 // @title Songs API
@@ -16,18 +17,22 @@ import (
 // @host localhost:8080
 // @BasePath /songs
 func main() {
-	// godotenv.Load()
 	logger := configLogger()
-	repository.ConnectDatabase(logger)
 
-	router := chi.NewRouter()
-	router.Post("/songs", service.SongsAddPost) // Create a new song
-	router.Get("/songs", service.SongsGet) // Get all songs
-	router.Delete("/songs/{id}", service.SongsIdDelete) // Delete a song by ID
-	router.Patch("/songs/{id}", service.SongsIdEditPatch) // Update a song by ID
-	router.Get("/songs/{id}/couplets", service.SongsIdCoupletGet) // Get couplets of a song by ID
+	if err := godotenv.Load(); err != nil {
+		logger.Error("error loading env variables", slog.String("error", err.Error()))
+	}
 
-	err := http.ListenAndServe(os.Getenv("PORT"), router)
+	db, err := repository.ConnectDatabase(logger)
+	if err != nil {
+		logger.Error("failed to connect db", slog.String("error", err.Error()))
+	}
+
+	repos := repository.NewRepository(db)
+	services := service.NewService(repos)
+	h := handler.NewHandler(services)
+
+	err = http.ListenAndServe(os.Getenv("PORT"), h.InitRoutes())
 	if err != nil {
 		logger.Error("failed start server")
 		panic(err)
