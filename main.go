@@ -3,7 +3,7 @@ package main
 import (
 	"Test_task/repository"
 	// "fmt"
-	"Test_task/pkg/service"
+	"Test_task/internal/service"
 	"log/slog"
 	"net/http"
 	"os"
