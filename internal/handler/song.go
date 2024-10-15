@@ -143,7 +143,6 @@ func (h *Handler) SongVerse(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error while encoding JSON", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 // EditSong обновление информации о песне.
