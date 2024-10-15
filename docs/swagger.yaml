@@ -1,12 +1,5 @@
 basePath: /songs
 definitions:
-  models.Couplet:
-    properties:
-      number:
-        type: integer
-      text:
-        type: string
-    type: object
   models.ErrorResponse:
     properties:
       message:
@@ -30,6 +23,13 @@ definitions:
         type: string
       text:
         description: 'required: true'
+        type: string
+    type: object
+  models.Verse:
+    properties:
+      number:
+        type: integer
+      text:
         type: string
     type: object
 host: localhost:8080
@@ -157,9 +157,9 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Update song by ID
-  /songs/{id}/couplets:
+  /songs/{id}/verses:
     get:
-      description: Get couplets of a song by its ID
+      description: Get verses of a song by its ID
       parameters:
       - description: Song ID
         in: path
@@ -181,7 +181,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Couplet'
+              $ref: '#/definitions/models.Verse'
             type: array
         "400":
           description: Bad Request
@@ -191,5 +191,5 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Get song couplets by ID
+      summary: Get song verses by ID
 swagger: "2.0"

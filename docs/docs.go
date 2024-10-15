@@ -194,13 +194,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/songs/{id}/couplets": {
+        "/songs/{id}/verses": {
             "get": {
-                "description": "Get couplets of a song by its ID",
+                "description": "Get verses of a song by its ID",
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get song couplets by ID",
+                "summary": "Get song verses by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -228,7 +228,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Couplet"
+                                "$ref": "#/definitions/models.Verse"
                             }
                         }
                     },
@@ -249,17 +249,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Couplet": {
-            "type": "object",
-            "properties": {
-                "number": {
-                    "type": "integer"
-                },
-                "text": {
-                    "type": "string"
-                }
-            }
-        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -292,6 +281,17 @@ const docTemplate = `{
                 },
                 "text": {
                     "description": "required: true",
+                    "type": "string"
+                }
+            }
+        },
+        "models.Verse": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "integer"
+                },
+                "text": {
                     "type": "string"
                 }
             }
