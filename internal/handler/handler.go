@@ -3,6 +3,8 @@ package handler
 import (
 	"github.com/go-chi/chi/v5"
 	"Test_task/internal/service"
+	docs "Test_task/docs"
+	"github.com/swaggo/http-swagger"
 )
 
 type Handler struct {
@@ -15,6 +17,9 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) InitRoutes() chi.Router {
 	router := chi.NewRouter()
+
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	router.Get("/swagger/*", httpSwagger.WrapHandler) 
 
     router.Route("/", func(r chi.Router) {
 		router.Post("/songs", h.AddSong)

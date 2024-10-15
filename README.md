@@ -1,0 +1,1 @@
+## Тестовое задание на позицию Junior GO Developer в Effective Mobile
