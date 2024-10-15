@@ -8,10 +8,9 @@ import (
 type SongRepo interface {
 	CreateSong(song models.Song) error
     GetAll(filter models.Song, last string, limit string) ([]*models.Song, error)
-	GetCouplet(id string) (string, error)
+	GetVerse(id string, limit int, offset int) ([]models.Verse, error)
     UpdateSong(id string, song models.Song) error
     DeleteSong(id string) error
-	// findSong(song models.Song) models.Song
 }
 
 type Service struct {

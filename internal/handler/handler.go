@@ -24,7 +24,7 @@ func (h *Handler) InitRoutes() chi.Router {
     router.Route("/", func(r chi.Router) {
 		router.Post("/songs", h.AddSong)
 		router.Get("/songs", h.GetSongs)
-		router.Get("/songs/{id}/couplets", h.SongCouplets)
+		router.Get("/songs/{id}/verses", h.SongVerse)
 		router.Patch("/songs/{id}", h.EditSong)
 		router.Delete("/songs/{id}", h.DeleteSong)
     })

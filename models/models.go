@@ -3,7 +3,7 @@ package models
 // Couplet provides data of a song.
 //
 // swagger:model Couplet
-type Couplet struct {
+type Verse struct {
 	Number int    `json:"number"`
 	Text   string `json:"text"`
 }

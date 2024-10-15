@@ -5,8 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
-
 	"github.com/go-chi/chi/v5"
 	"Test_task/models"
 	// "fmt"
@@ -93,18 +91,18 @@ func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SongCouplets получение куплета песни по ID.
-// @Summary Get song couplets by ID
-// @Description Get couplets of a song by its ID
+// SongVerses получение куплета песни по ID.
+// @Summary Get song verses by ID
+// @Description Get verses of a song by its ID
 // @Produce json
 // @Param id path string true "Song ID"
 // @Param limit query int false "Limit"
 // @Param offset query int false "Offset"
-// @Success 200 {array} models.Couplet
+// @Success 200 {array} models.Verse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /songs/{id}/couplets [get]
-func (h *Handler) SongCouplets(w http.ResponseWriter, r *http.Request) {
+// @Router /songs/{id}/verses [get]
+func (h *Handler) SongVerse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	id := chi.URLParam(r, "id") //спрятать роутер
@@ -135,41 +133,17 @@ func (h *Handler) SongCouplets(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	songText, err := h.services.GetCouplet(id)
+	verse, err := h.services.GetVerse(id, limit, offset)
 	if err != nil {
 		http.Error(w, "Error while retrieving song text", http.StatusInternalServerError)
 		return
 	}
 
-	couplet := splitCouplets(songText, limit)
-
-	if offset >= len(couplet) {
-		couplet = []models.Couplet{}
-	} else if offset+limit > len(couplet) {
-		couplet = couplet[offset:]
-	} else {
-		couplet = couplet[offset : offset+limit]
-	}
-
-	if err := json.NewEncoder(w).Encode(couplet); err != nil {
+	if err := json.NewEncoder(w).Encode(verse); err != nil {
 		http.Error(w, "Error while encoding JSON", http.StatusInternalServerError)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
-}
-
-func splitCouplets(text string, limit int) []models.Couplet {
-	parts := strings.Split(text, "/br")
-	verses := make([]models.Couplet, 0)
-
-	for i, part := range parts {
-		if i >= limit {
-			break
-		}
-		verses = append(verses, models.Couplet{Number: i + 1, Text: strings.TrimSpace(part)})
-	}
-	return verses
 }
 
 // EditSong обновление информации о песне.
